@@ -1,10 +1,6 @@
-### Hemodynamic Models
-
 Three simple hemodynamic models are provided. Note how these model are a python/cython re-implementation of those provided through the tulip library used in the paper.
 
-****
-
-#### RC Model
+## RC Model
 
 A model of a simple RC circuit. A pulsatile inflow is provided through the ```../data/inlet.flow``` file. 
 Additionally, a simple dataset with multiple measurements of minimum, maximum and average pressure is provided in the file ```../data/rc_dataset.csv```.
@@ -22,9 +18,7 @@ The outputs are:
 
 The only state variable is the pressure at the capacitor, with a default initial condition set to 55.0 mmHg. 
 
-****
-
-#### RCR Model
+## RCR Model
 
 A model of a simple RC circuit. A pulsatile inflow is provided through the ```../data/inlet.flow``` file. 
 Additionally, a simple dataset with multiple measurements of minimum, maximum and average pressure is provided in the file ```../data/rc_dataset.csv```.
@@ -43,15 +37,11 @@ The outputs are:
 
 The only state variable is the pressure at the capacitor, with a default initial condition set to 55.0 mmHg. 
 
-****
-
-#### Model for Adult Cardiovascular Physiology
+## Model for Adult Cardiovascular Physiology
 
 For additional details on this model, please refer to the paper. 
 
-****
-
-#### Compile Cython Module
+## Compile Cython Module
 
 To compile the cython module , cd in the ```models``` folder and type
 
