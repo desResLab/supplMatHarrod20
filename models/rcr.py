@@ -31,15 +31,15 @@ class rcrModel(circuitModel):
                         self.cycleTime,self.forcing,
                         self.numState,self.numAuxState)
 
-  def postProcess(self,t,y,aux,start,stop):
-
+  def postProcess(self,t,y,aux,start,stop):    
     res = np.zeros(self.numOutputs)
     # Compute Min Pressure
-    res[0] = np.min(y[0,start:stop])/mmHgToBarye
+    res[0] = np.min(aux[2,start:stop])/mmHgToBarye
     # Compute Max Pressure
-    res[1] = np.max(y[0,start:stop])/mmHgToBarye
+    res[1] = np.max(aux[2,start:stop])/mmHgToBarye
     # Compute Average Pressure
-    res[2] = (np.trapz(y[0,start:stop],t[start:stop])/float(self.cycleTime))/mmHgToBarye
+    res[2] = (np.trapz(aux[2,start:stop],t[start:stop])/float(self.cycleTime))/mmHgToBarye
+
     return res
 
 # TESTING MODEL
@@ -53,8 +53,10 @@ if __name__ == "__main__":
 
   # Get Default Initial Conditions
   y0        = model.defIC
+  # Get Default Parameters
   params    = model.defParam
-  outs      = model.solve(params=params,y0=y0)
+  # Solve Model and Get Results
+  outs      = model.solve(params=params,y0=y0)[0]
   outLabels = model.resName
 
   # Array with measurement standard deviations - same size of the model result vector

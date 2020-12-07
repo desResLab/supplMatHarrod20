@@ -24,7 +24,7 @@ cdef c_interp(double t,int n,double[:] x,double[:] y):
     printf("ERROR: value not found in c_interp.\n")
     exit(-1)
   else:
-    return y[count-1] + t*(y[count]-y[count-1])/(x[count]-x[count-1])
+    return y[count-1] + (t-x[count-1])*(y[count]-y[count-1])/(x[count]-x[count-1])
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -299,7 +299,6 @@ cpdef evalDeriv_rc(double t,double[::1] y,double[::1] params,
 
   # Interpolate forcing
   cdef double Q1    = c_interp(t % cycleTime, len(forcing), forcing[:,0], forcing[:,1])
-  # cdef double Q1    = np.interp(t % cycleTime, forcing[:,0], forcing[:,1])
   cdef double Q2    = (P1-Pd) / R
   cdef double dP1dt = (Q1-Q2) / C
 

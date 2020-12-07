@@ -31,7 +31,6 @@ class rcModel(circuitModel):
                         self.numState,self.numAuxState)
                    
   def postProcess(self,t,y,aux,start,stop):
-
     res = np.zeros(self.numOutputs)
     # Compute Min Pressure
     res[0] = np.amin(y[0,start:stop])/mmHgToBarye
@@ -52,8 +51,10 @@ if __name__ == "__main__":
 
   # Get Default Initial Conditions
   y0        = model.defIC
+  # Get Default Model Parameters
   params    = model.defParam
-  outs      = model.solve(params=params,y0=y0)
+  # Solve Model and Get Outputs
+  outs      = model.solve(params=params,y0=y0)[0]
   outLabels = model.resName
 
   # Array with measurement standard deviations - same size of the model result vector
