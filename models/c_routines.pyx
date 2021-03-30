@@ -115,15 +115,15 @@ cpdef evalDeriv_adult(double t,double[::1] y,double[::1] params,
   
   # Ventricle activation
   cdef double fAV = 0.0
-  if(tmv<tsvs):
-    fAV = (1.0-cos(2.0*M_PI*tmv/float(tsvs)))/2.0
+  if(tmv<tsv):
+    fAV = (1.0-cos(2.0*M_PI*tmv/float(tsv)))/2.0
   else:
     fAV = 0.0
   
   # Atrium activation
   cdef double fAA = 0.0
-  if(tma<tsas):
-    fAA = (1.0-cos(2.0*M_PI*tma/float(tsas)))/2.0
+  if(tma<tsa):
+    fAA = (1.0-cos(2.0*M_PI*tma/float(tsa)))/2.0
   else:
     fAA = 0.0
   
