@@ -1,6 +1,6 @@
 ## Repository Information 
 
-This repository contains the supplementary material to the paper *K.K. Harrod, J.L. Rogers, J.A. Feinstein, A.L. Marsden and D.E. Schiavazzi*, **Predictive modeling of secondary pulmonary hypertension in left ventricular diastolic dysfunction**. A draft is available from [medrxiv](https://www.medrxiv.org/content/10.1101/2020.04.23.20073601v2).
+This repository contains the supplementary material to the paper *K.K. Harrod, J.L. Rogers, J.A. Feinstein, A.L. Marsden and D.E. Schiavazzi*, [**Predictive modeling of secondary pulmonary hypertension in left ventricular diastolic dysfunction**](https://www.frontiersin.org/articles/10.3389/fphys.2021.666915/full).
 
 We provide the two datasets used to generate the results in the paper. Additionally we also provide some python scripts to run zero-dimensional hemodynamic models representing simple RC and RCR models, and one model for adult cardiovascular physiology.
 
