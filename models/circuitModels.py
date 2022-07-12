@@ -60,7 +60,7 @@ class circuitModel():
   def __init__(self,numParam,numState,numAuxState,numOutputs,
                icName,parName,resName,limits,
                defIC,defParam,
-               cycleTime,totalCycles,timeStepsPerCycle=1000,forcing=None):
+               cycleTime,totalCycles,timeStepsPerCycle=1000,forcing=None,debugMode=False):
     # Time integration parameters
     self.timeStepsPerCycle = timeStepsPerCycle
     self.cycleTime = cycleTime
@@ -78,11 +78,19 @@ class circuitModel():
     self.limits      = limits
     self.defIC       = defIC
     self.defParam    = defParam
+    # Debug Mode
+    self.debugMode = debugMode
+
+  def eval_IC(self,params):
+    return np.zeros(self.numState)
 
   def evalDeriv(self,t,y,params):
     pass
 
   def postProcess(self,t,y,aux,start,stop):
+    pass
+
+  def plot_model(self,t,y,aux,start,stop):
     pass
 
   def genDataFile(self,dataSize,stdRatio,dataFileName):
@@ -118,7 +126,7 @@ class circuitModel():
     # Homogeneous initial conditions with None
     self.y0 = y0
     if(self.y0 is None):
-      self.y0 = np.zeros(self.numState)
+      self.y0 = self.eval_IC(params)
 
     # Set initial and total time
     totalSteps = self.timeStepsPerCycle*self.totalCycles
@@ -142,6 +150,10 @@ class circuitModel():
     time1     = time.time()
     modOuts = self.postProcess(t,y,aux,start,stop)
     postTime = (time.time()-time1)*1000 # Microseconds
+
+    # Plot model response if in debug mode
+    if(self.debugMode):
+      self.plot_model(t,y,aux,start,stop)
     
     return modOuts,solveTime,postTime
 
@@ -157,7 +169,7 @@ class circuitModel():
     # Assign initial conditions
     currIni = y0
     if(currIni is None):
-      currIni = self.defParam[:self.numState]
+      currIni = self.eval_IC(params)
 
     # Extract the label and data from the DB file
     time1                    = time.time()

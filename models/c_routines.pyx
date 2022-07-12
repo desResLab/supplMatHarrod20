@@ -1,7 +1,7 @@
 import numpy as np
 cimport numpy as np
 cimport cython
-from libc.math cimport exp,fmod,M_PI,cos,fabs,isnan
+from libc.math cimport exp,fmod,M_PI,sin,cos,fabs,isnan
 from libc.stdio cimport printf
 from libcpp cimport bool
 
@@ -25,6 +25,343 @@ cdef c_interp(double t,int n,double[:] x,double[:] y):
     exit(-1)
   else:
     return y[count-1] + (t-x[count-1])*(y[count]-y[count-1])/(x[count]-x[count-1])
+
+cpdef eval_cvsim6_ic(double[:] params):
+
+  # Store parameters
+  cdef double hr      = params[0]
+  cdef double r_li    = params[1]
+  cdef double r_lo    = params[2]
+  cdef double r_a     = params[3]
+  cdef double r_ri    = params[4]
+  cdef double r_ro    = params[5]
+  cdef double r_pv    = params[6]
+  cdef double p_th    = params[7]
+  cdef double c_a     = params[8]
+  cdef double c_v     = params[9]
+  cdef double c_pa    = params[10]
+  cdef double c_pv    = params[11]
+  cdef double tr_sys  = params[12]
+  cdef double c_l_sys = params[13]
+  cdef double c_l_dia = params[14]
+  cdef double c_r_sys = params[15]
+  cdef double c_r_dia = params[16]
+
+  cdef double t_tot = 60.0/hr
+  cdef double t_sys = t_tot*tr_sys
+  cdef double t_dia = t_tot-t_sys
+
+  # Assign blood volumnes
+  cdef double v_tot   = 5000.0
+  cdef double v_0_tot = 15.0+715.0+2500.0+15.0+90.0+490.0
+
+  # Solve a 8x8 linear system
+  ic_mat = np.zeros((8,8))
+  ic_b = np.zeros(8)
+  # Equation 0
+  ic_mat[0,0] = +c_l_dia
+  ic_mat[0,1] = -c_l_sys
+  ic_mat[0,2] = -c_r_dia
+  ic_mat[0,3] = +c_r_sys
+  ic_b[0] =  c_l_dia*p_th - c_l_sys*p_th - c_r_dia*p_th + c_r_sys*p_th 
+  # Equation 1
+  ic_mat[1,0] = +c_l_dia
+  ic_mat[1,1] = -c_l_sys - t_sys/r_lo
+  ic_mat[1,4] = t_sys/r_lo
+  ic_b[1] =  c_l_dia*p_th - c_l_sys*p_th
+  # Equation 2
+  ic_mat[2,0] = +c_l_dia
+  ic_mat[2,1] = -c_l_sys
+  ic_mat[2,4] = -t_tot/r_a
+  ic_mat[2,5] = t_tot/r_a
+  ic_b[2] = c_l_dia*p_th - c_l_sys*p_th
+  # Equation 3
+  ic_mat[3,0] = +c_l_dia
+  ic_mat[3,1] = -c_l_sys
+  ic_mat[3,2] = t_dia/r_ri
+  ic_mat[3,5] = -t_dia/r_ri
+  ic_b[3] = c_l_dia*p_th - c_l_sys*p_th
+  # Equation 4
+  ic_mat[4,0] = +c_l_dia
+  ic_mat[4,1] = -c_l_sys
+  ic_mat[4,3] = -t_sys/r_ro
+  ic_mat[4,6] = t_sys/r_ro
+  ic_b[4] = c_l_dia*p_th - c_l_sys*p_th
+  # Equation 5
+  ic_mat[5,0] = +c_l_dia
+  ic_mat[5,1] = -c_l_sys
+  ic_mat[5,6] = -t_tot/r_pv
+  ic_mat[5,7] = t_tot/r_pv
+  ic_b[5] = c_l_dia*p_th - c_l_sys*p_th
+  # Equation 6
+  ic_mat[6,0] = +c_l_dia + t_dia/r_li
+  ic_mat[6,1] = -c_l_sys
+  ic_mat[6,7] = -t_dia/r_li
+  ic_b[6] = c_l_dia*p_th - c_l_sys*p_th
+  # Equation 7
+  ic_mat[7,0] = c_l_dia
+  ic_mat[7,2] = c_r_dia
+  ic_mat[7,4] = c_a
+  ic_mat[7,5] = c_v
+  ic_mat[7,6] = c_pa
+  ic_mat[7,7] = c_pv
+  ic_b[7] = (v_tot-v_0_tot)+p_th*(c_l_dia + (1.0/3.0)*c_a + c_r_dia + c_pa + c_pv)
+
+  # Solve linear system
+  sol = np.linalg.solve(ic_mat,ic_b)
+
+  # Assign to solution: use diastolic values only
+  res = np.empty(6)
+  res[0]  = sol[0]
+  res[1]  = sol[4]
+  res[2]  = sol[5]
+  res[3]  = sol[2]
+  res[4]  = sol[6]
+  res[5]  = sol[7]
+
+  p_l_dia = sol[0]
+  p_l_sys = sol[1]
+  p_r_dia = sol[2]
+  p_r_sys = sol[3]
+  p_a     = sol[4]
+  p_v     = sol[5]
+  p_pa    = sol[6]
+  p_pv    = sol[7]
+
+  if(False):
+    print('p_l_dia: ',p_l_dia/mmHg_to_barye)
+    print('p_l_sys: ',p_l_sys/mmHg_to_barye)
+    print('p_r_dia: ',p_r_dia/mmHg_to_barye)
+    print('p_r_sys: ',p_r_sys/mmHg_to_barye)
+    print('p_a: ',p_a/mmHg_to_barye)
+    print('p_v: ',p_v/mmHg_to_barye)
+    print('p_pa: ',p_pa/mmHg_to_barye)
+    print('p_pv: ',p_pv/mmHg_to_barye)
+
+  # Eval Residuals
+  term0 = c_l_sys*(p_l_sys-p_th) - c_l_dia*(p_l_dia-p_th)
+  term1 = c_r_sys*(p_r_sys-p_th) - c_r_dia*(p_r_dia-p_th)
+  term2 = t_sys*(p_l_sys-p_a)/r_lo
+  term3 = t_dia*(p_v-p_r_dia)/r_ri
+  term4 = t_sys*(p_r_sys-p_pa)/r_ro
+  term5 = t_tot*(p_pa-p_pv)/r_pv
+  term6 = t_dia*(p_pv-p_l_dia)/r_li
+  term7 = v_tot - v_0_tot
+  term8 = c_l_dia*(p_l_dia-p_th) + c_a*(p_a-(1.0/3.0)*p_th) + c_v*p_v + c_r_dia*(p_r_dia-p_th) + c_pa*(p_pa-p_th) + c_pv*(p_pv-p_th)
+
+  if(False):
+    print('--- Contributions to the stressed volume')
+    print('LV contribution: ',c_l_dia*(p_l_dia-p_th))
+    print('Arterial contribution: ',c_a*(p_a-(1.0/3.0)*p_th))
+    print('Venous contribution: ',c_v*p_v)
+    print('RV contribution: ',c_r_dia*(p_r_dia-p_th))
+    print('Pulmonary artery contribution: ',c_pa*(p_pa-p_th))
+    print('Pulmonary veins contribution:  ',c_pv*(p_pv-p_th))
+
+    print(term0)
+    print(term1)
+    print(term2)
+    print(term3)
+    print(term4)
+    print(term5)
+    print(term6)
+    print(term7)
+    print(term8)
+
+  # Return
+  return res
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.nonecheck(False)
+cdef eval_ventricle_c(double tr, double tr_sys, 
+                      double c_l_sys, double c_l_dia, 
+                      double c_r_sys, double c_r_dia):
+
+  cdef double Elv = 0.0
+  cdef double Erv = 0.0
+  cdef double dElv = 0.0
+  cdef double dErv = 0.0
+
+  # Ventricular contraction. PR-interval has not yet passed.
+  if (tr <= 0.0):
+    Elv = 1/c_l_dia
+    Erv = 1/c_r_dia
+    dElv = 0.0
+    dErv = 0.0
+
+  # Ventricular contraction.
+  elif ((0 < tr) and (tr <= tr_sys)):
+    Elv = 0.5*(1/c_l_sys-1/c_l_dia)*(1-cos(M_PI*tr/tr_sys))+1/c_l_dia
+    Erv = 0.5*(1/c_r_sys-1/c_r_dia)*(1-cos(M_PI*tr/tr_sys))+1/c_r_dia
+    dElv = 0.5*M_PI*(1/c_l_sys-1/c_l_dia)*sin(M_PI*tr/tr_sys)/tr_sys
+    dErv = 0.5*M_PI*(1/c_r_sys-1/c_r_dia)*sin(M_PI*tr/tr_sys)/tr_sys
+
+  # Early ventricular relaxation.
+  elif ((tr_sys < tr) and (tr <= 1.5*tr_sys)):
+    Elv = 0.5*(1/c_l_sys-1/c_l_dia)*(1+cos(2.0*M_PI*(tr-tr_sys)/tr_sys)) + 1/c_l_dia
+    Erv = 0.5*(1/c_r_sys-1/c_r_dia)*(1+cos(2.0*M_PI*(tr-tr_sys)/tr_sys)) + 1/c_r_dia
+    dElv = -1.0*M_PI*(1/c_l_sys-1/c_l_dia)*sin(2.0*M_PI*(tr-tr_sys)/tr_sys)/tr_sys
+    dErv = -1.0*M_PI*(1/c_r_sys-1/c_r_dia)*sin(2.0*M_PI*(tr-tr_sys)/tr_sys)/tr_sys
+  
+  # Ventricular diastole.
+  elif (tr > 1.5*tr_sys):
+    Elv = 1/c_l_dia
+    Erv = 1/c_r_dia
+    dElv = 0.0
+    dErv = 0.0
+
+  # Compute final capacitance and time derivative
+  cdef double c_r = 1.0/Erv
+  cdef double c_l = 1.0/Elv
+  cdef double dcr_dt = -1.0/(Erv*Erv)*dErv
+  cdef double dcl_dt = -1.0/(Elv*Elv)*dElv
+
+  # Return values
+  return c_l,c_r,dcl_dt,dcr_dt
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.nonecheck(False)
+cpdef evalDeriv_cvsim6(double t,double[::1] y,double[::1] params,
+                       int numState,int numAuxState,debugMode=False):
+
+  cdef double[:] params_view = params
+  cdef double[:] y_view = y
+
+  # STATE VARIABLES
+  cdef int i_p_l  = 0
+  cdef int i_p_a  = 1
+  cdef int i_p_v  = 2
+  cdef int i_p_r  = 3
+  cdef int i_p_pa = 4
+  cdef int i_p_pv = 5
+  # AUX VARIABLES
+  cdef int i_q_li = 0
+  cdef int i_q_lo = 1
+  cdef int i_q_a  = 2
+  cdef int i_q_ri = 3
+  cdef int i_q_ro = 4
+  cdef int i_q_pv = 5
+  cdef int i_v_l  = 6
+  cdef int i_v_a  = 7
+  cdef int i_v_v  = 8
+  cdef int i_v_r  = 9
+  cdef int i_v_pa = 10
+  cdef int i_v_pv = 11
+  
+  # MODEL PARAMETERS
+  cdef int i_hr      = 0
+  cdef int i_r_li    = 1
+  cdef int i_r_lo    = 2 
+  cdef int i_r_a     = 3 
+  cdef int i_r_ri    = 4
+  cdef int i_r_ro    = 5 
+  cdef int i_r_pv    = 6
+  cdef int i_p_th    = 7 
+  cdef int i_c_a     = 8 
+  cdef int i_c_v     = 9 
+  cdef int i_c_pa    = 10 
+  cdef int i_c_pv    = 11
+  cdef int i_tr_sys  = 12
+  cdef int i_c_l_sys = 13
+  cdef int i_c_l_dia = 14
+  cdef int i_c_r_sys = 15
+  cdef int i_c_r_dia = 16
+  cdef int i_v_0_lv  = 17
+  cdef int i_v_0_a   = 18
+  cdef int i_v_0_v   = 19
+  cdef int i_v_0_rv  = 20
+  cdef int i_v_0_pa  = 21
+  cdef int i_v_0_pv  = 22
+
+  # ASSIGN STATE VARIABLES
+  cdef double p_l  = y_view[i_p_l]
+  cdef double p_a  = y_view[i_p_a]
+  cdef double p_v  = y_view[i_p_v]
+  cdef double p_r  = y_view[i_p_r]
+  cdef double p_pa = y_view[i_p_pa]
+  cdef double p_pv = y_view[i_p_pv]
+
+  # ASSIGN PARAMETERS
+  cdef double hr      = params_view[i_hr]
+  cdef double r_li    = params_view[i_r_li]
+  cdef double r_lo    = params_view[i_r_lo]
+  cdef double r_a     = params_view[i_r_a]
+  cdef double r_ri    = params_view[i_r_ri]
+  cdef double r_ro    = params_view[i_r_ro]
+  cdef double r_pv    = params_view[i_r_pv]
+  cdef double p_th    = params_view[i_p_th]
+  cdef double c_a     = params_view[i_c_a]
+  cdef double c_v     = params_view[i_c_v]
+  cdef double c_pa    = params_view[i_c_pa]
+  cdef double c_pv    = params_view[i_c_pv]
+  cdef double tr_sys  = params_view[i_tr_sys]
+  cdef double c_l_sys = params_view[i_c_l_sys]
+  cdef double c_l_dia = params_view[i_c_l_dia]
+  cdef double c_r_sys = params_view[i_c_r_sys]
+  cdef double c_r_dia = params_view[i_c_r_dia]
+
+  # COMPUTE FLUXES
+  # Q_li
+  cdef double q_li = 0.0
+  if(p_pv > p_l):
+    q_li = (p_pv-p_l)/r_li
+  # Q_lo
+  cdef double q_lo = 0.0
+  if(p_l > p_a):
+    q_lo = (p_l-p_a)/r_lo
+  # Q_a
+  cdef double q_a = (p_a - p_v)/r_a
+  # Q_ri
+  cdef double q_ri = 0.0
+  if(p_v > p_r):
+    q_ri = (p_v - p_r)/r_ri      
+  # Q_ro
+  cdef double q_ro = 0.0
+  if(p_r > p_pa):
+    q_ro = (p_r - p_pa)/r_ro      
+  # Q_pv
+  cdef double q_pv = (p_pa - p_pv)/r_pv
+
+  # COMPUTE VENTRICULAR CAPACITANCES
+  cdef double t_cycle = 60.0/hr
+  cdef double tr = fmod(t,t_cycle)
+  c_l,c_r,dcl_dt,dcr_dt = eval_ventricle_c(tr,tr_sys,c_l_sys,c_l_dia,c_r_sys,c_r_dia)
+
+  # COMPUTE VOLUMES
+  cdef double v_l  = (p_l - p_th) * c_l + params[i_v_0_lv]
+  cdef double v_a  = p_a * c_a + params[i_v_0_a]
+  cdef double v_v  = p_v * c_v + params[i_v_0_v]
+  cdef double v_r  = (p_r - p_th) * c_r + params[i_v_0_rv]
+  cdef double v_pa = (p_pa - p_th) * c_pa + params[i_v_0_pa]
+  cdef double v_pv = (p_pv - p_th) * c_pv + params[i_v_0_pv]
+
+  cdef np.ndarray[np.double_t, ndim=1] res = np.zeros(2*numState + numAuxState)
+  # COMPUTE RHS
+  res[0] = (q_li - q_lo - (p_l-p_th)*dcl_dt)/c_l
+  res[1] = (q_lo - q_a)/c_a
+  res[2] = (q_a - q_ri)/c_v
+  res[3] = (q_ri - q_ro - (p_r - p_th)*dcr_dt)/c_r
+  res[4] = (q_ro - q_pv)/c_pa
+  res[5] = (q_pv - q_li)/c_pv
+  # AUX
+  res[6] = q_li
+  res[7] = q_lo
+  res[8] = q_a
+  res[9] = q_ri
+  res[10] = q_ro
+  res[11] = q_pv
+  res[12] = v_l
+  res[13] = v_a
+  res[14] = v_v
+  res[15] = v_r
+  res[16] = v_pa
+  res[17] = v_pv
+  for loopA in range(numState):
+    res[18 + loopA] = 1.0
+  
+  return res
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
