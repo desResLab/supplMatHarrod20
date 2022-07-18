@@ -105,16 +105,20 @@ class circuitModel():
     np.savetxt(dataFileName,data)
 
   def areValidParams(self,params):
+    # Check size
     if(len(params) != len(self.limits)):
       print('ERROR: Parameters and Limits are not compatible.')
       print('Parameter Size: ',len(params))
       print('Limit Size: ',len(self.limits))
       exit(-1)
+
     res = True
     for loopA in range(len(params)):
-      res = res and ((params[loopA] >= self.limits[loopA,0]) and (params[loopA] <= self.limits[loopA,1]))
-      if(not res):
-        print('Component: ',loopA)
+      this_res = ((params[loopA] >= self.limits[loopA,0]) and (params[loopA] <= self.limits[loopA,1]))
+      res = res and this_res
+      if(not this_res):
+        print('Component: {}, Parameter: {}, lower bound: {}, upper bound: {}'.format(loopA,params[loopA],self.limits[loopA,0],self.limits[loopA,1]))
+
     return res
 
   def solveRK4(self,timeStep,totalSteps,saveEvery,y0,params):
@@ -186,34 +190,28 @@ class circuitModel():
         print("%30s %15.1f %15.1f" % (patLabels[loopA],patData[loopA],patStd[loopA]))
 
     # Are parameters within the limits
-    if self.areValidParams(currParams):
+    if not(self.areValidParams(currParams)):
+      print('WARNING: Parameters out of bounds.')
       
-      # Get Model Solution
-      modelOut,solveTime,postTime  = self.solve(currParams,currIni)
-      
-      # Match the measurements from the dataset with the model output
-      time1                        = time.time()
-      keys,modOut,measurement,stds = extractModelMatch(modelOut,self.resName,patData,patLabels,patStd)
-      matchOutTime                 = (time.time()-time1)*1000 # Microseconds
-      
-      if(self.verbose):
-        print("")
-        print("%30s %15s %15s %15s" % ("Key","Output","Data","Std"))
-        for loopA in range(len(modOut)):       
-          print("%30s %15.1f %15.1f %15.1f" % (keys[loopA,0],modOut[loopA,0],measurement[loopA,0],stds[loopA,0]))
+    # Get Model Solution
+    modelOut,solveTime,postTime  = self.solve(currParams,currIni)
+    
+    # Match the measurements from the dataset with the model output
+    time1                        = time.time()
+    keys,modOut,measurement,stds = extractModelMatch(modelOut,self.resName,patData,patLabels,patStd)
+    matchOutTime                 = (time.time()-time1)*1000 # Microseconds
+    
+    if(self.verbose):
+      print("")
+      print("%30s %15s %15s %15s" % ("Key","Output","Data","Std"))
+      for loopA in range(len(modOut)):       
+        print("%30s %15.1f %15.1f %15.1f" % (keys[loopA,0],modOut[loopA,0],measurement[loopA,0],stds[loopA,0]))
 
-      # Eval LL
-      ll1 = -0.5*np.prod(measurement.shape)*np.log(2.0*np.pi)
-      ll2 = -0.5*measurement.shape[1]*np.log(np.prod(stds))
-      ll3 = -0.5*((modOut.reshape(-1,1)-measurement)**2/(stds.reshape(-1,1)**2)).sum()
-      negLL = -(ll1 + ll2 + ll3)
-    else:
-      print('WARNING: Invalid input parameters.')
-      modelOut = None
-      solveTime = 0.0
-      postTime = 0.0
-      matchOutTime = 0.0
-      negLL = 1.0e16
+    # Eval LL
+    ll1 = -0.5*np.prod(measurement.shape)*np.log(2.0*np.pi)
+    ll2 = -0.5*measurement.shape[1]*np.log(np.prod(stds))
+    ll3 = -0.5*((modOut.reshape(-1,1)-measurement)**2/(stds.reshape(-1,1)**2)).sum()
+    negLL = -(ll1 + ll2 + ll3)
 
     if(self.verbose and self.debugMode):
       print("--- Timing")
@@ -223,4 +221,4 @@ class circuitModel():
       print("Matching Model Ouputs. Time: %f ms" % (matchOutTime))
       print("---")
 
-    return negLL,modOut,measurement
+    return negLL,modOut,measurement,stds,keys
