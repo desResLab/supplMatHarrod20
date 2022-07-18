@@ -60,7 +60,8 @@ class circuitModel():
   def __init__(self,numParam,numState,numAuxState,numOutputs,
                icName,parName,resName,limits,
                defIC,defParam,
-               cycleTime,totalCycles,timeStepsPerCycle=1000,forcing=None,debugMode=False):
+               cycleTime,totalCycles,timeStepsPerCycle=1000,forcing=None,
+               debugMode=False,verbose=False):
     # Time integration parameters
     self.timeStepsPerCycle = timeStepsPerCycle
     self.cycleTime = cycleTime
@@ -80,6 +81,7 @@ class circuitModel():
     self.defParam    = defParam
     # Debug Mode
     self.debugMode = debugMode
+    self.verbose   = verbose
 
   def eval_IC(self,params):
     return np.zeros(self.numState)
@@ -111,6 +113,8 @@ class circuitModel():
     res = True
     for loopA in range(len(params)):
       res = res and ((params[loopA] >= self.limits[loopA,0]) and (params[loopA] <= self.limits[loopA,1]))
+      if(not res):
+        print('Component: ',loopA)
     return res
 
   def solveRK4(self,timeStep,totalSteps,saveEvery,y0,params):
@@ -176,7 +180,7 @@ class circuitModel():
     patLabels,patData,patStd = extractPatientFromDB(dbFile,columnID,self.resName,stds)
     extractBDTime            = (time.time()-time1)*1000 # Microseconds
 
-    if(True):
+    if(self.verbose):
       print("%30s %15s %15s" % ("Label","Data","StD"))
       for loopA in range(len(patLabels)):
         print("%30s %15.1f %15.1f" % (patLabels[loopA],patData[loopA],patStd[loopA]))
@@ -192,7 +196,7 @@ class circuitModel():
       keys,modOut,measurement,stds = extractModelMatch(modelOut,self.resName,patData,patLabels,patStd)
       matchOutTime                 = (time.time()-time1)*1000 # Microseconds
       
-      if(True):
+      if(self.verbose):
         print("")
         print("%30s %15s %15s %15s" % ("Key","Output","Data","Std"))
         for loopA in range(len(modOut)):       
@@ -204,13 +208,19 @@ class circuitModel():
       ll3 = -0.5*((modOut.reshape(-1,1)-measurement)**2/(stds.reshape(-1,1)**2)).sum()
       negLL = -(ll1 + ll2 + ll3)
     else:
+      print('WARNING: Invalid input parameters.')
+      modelOut = None
+      solveTime = 0.0
+      postTime = 0.0
+      matchOutTime = 0.0
       negLL = 1.0e16
 
-    print("--- Timing")
-    print("Extract Patient From DB. Time: %f ms" % (extractBDTime))
-    print("Model Solution. Time: %f ms" % (solveTime))
-    print("Model Post-processing. Time: %f ms" % (postTime))
-    print("Matching Model Ouputs. Time: %f ms" % (matchOutTime))
-    print("---")
+    if(self.verbose and self.debugMode):
+      print("--- Timing")
+      print("Extract Patient From DB. Time: %f ms" % (extractBDTime))
+      print("Model Solution. Time: %f ms" % (solveTime))
+      print("Model Post-processing. Time: %f ms" % (postTime))
+      print("Matching Model Ouputs. Time: %f ms" % (matchOutTime))
+      print("---")
 
-    return negLL
+    return negLL,modOut,measurement

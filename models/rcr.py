@@ -1,10 +1,12 @@
 import numpy as np
 from circuitModels import circuitModel,mmHgToBarye,baryeTommHg
 from c_routines import evalDeriv_rcr
+import matplotlib.pyplot as plt
 
 class rcrModel(circuitModel):
 
-  def __init__(self,cycleTime,totalCycles,forcing=None):    
+  def __init__(self,cycleTime,totalCycles,forcing=None,
+               debugMode=False,verbose=False):    
     # Init parameters
     numParam    = 3
     numState    = 1
@@ -24,12 +26,33 @@ class rcrModel(circuitModel):
     super().__init__(numParam,numState,numAuxState,numOutputs,
                      icName,parName,resName,
                      limits,defIC,defParam,
-                     cycleTime,totalCycles,forcing=forcing)
+                     cycleTime,totalCycles,forcing=forcing,
+                     debugMode=debugMode,verbose=verbose)
 
   def evalDeriv(self,t,y,params):
     return evalDeriv_rcr(t,y,params,
                         self.cycleTime,self.forcing,
                         self.numState,self.numAuxState)
+
+  def plot_model(self,t,y,aux,start,stop):
+    # Plot results
+    plt.figure(figsize=(10,3))
+    plt.subplot(1,2,1)
+    plt.plot(t,aux[2]/mmHgToBarye,label='p_0')
+    plt.plot(t,y[0]/mmHgToBarye,label='p_1')
+    plt.plot(t,aux[1]/mmHgToBarye,label='p_d')
+    plt.legend()
+    plt.xlabel('Time [s]')
+    plt.ylabel('Pressure [mmHg]')
+    plt.subplot(1,2,2)
+    plt.plot(t,aux[3]/mmHgToBarye,label='Q1')
+    plt.plot(t,aux[4]/mmHgToBarye,label='Q2')
+    plt.legend()
+    plt.xlabel('Time [s]')
+    plt.ylabel('Flow [mL/s]')
+    plt.tight_layout()
+    plt.show()
+    plt.close()
 
   def postProcess(self,t,y,aux,start,stop):    
     res = np.zeros(self.numOutputs)
@@ -49,7 +72,7 @@ if __name__ == "__main__":
   cycleTime = 1.07
   totalCycles = 10
   forcing = np.loadtxt('../data/inlet.flow')
-  model = rcrModel(cycleTime,totalCycles,forcing)
+  model = rcrModel(cycleTime,totalCycles,forcing,debugMode=True)
 
   # Get Default Initial Conditions
   y0        = model.defIC

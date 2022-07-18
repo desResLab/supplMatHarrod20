@@ -39,11 +39,15 @@ The only state variable is the pressure at the capacitor, with a default initial
 
 ## Model for Adult Cardiovascular Physiology
 
-For additional details on this model, please refer to the paper. 
+For additional details on this model, please refer to the [paper](https://www.frontiersin.org/articles/10.3389/fphys.2021.666915/full).
+
+## Six-compartment CVSIM model
+
+For additional information on this model please refer to this [thesis](https://dspace.mit.edu/handle/1721.1/13823).
 
 ## Compile Cython Module
 
-To compile the cython module , cd in the ```models``` folder and type
+To compile the cython module, cd in the ```models``` folder and type
 
 ```
 python3 setup.py build_ext --inplace

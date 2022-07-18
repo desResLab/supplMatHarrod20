@@ -134,7 +134,7 @@ class cvsim6(circuitModel):
     numParam    = 23
     numState    = 6
     numAuxState = 12
-    numOutputs  = 26
+    numOutputs  = 24
     self.debugMode = debugMode
 
     icName = np.array(['p_lv', # Left ventricular pressure
@@ -183,9 +183,9 @@ class cvsim6(circuitModel):
                         "rvedp", # RVEDP - ip_0002_rvedp
                         "aov_mean_pg", # meanAOVPG - ip_0002_aov_mean_pg
                         "aov_peak_pg", # maxAOVPG - ip_0002_aov_peak_pg
-                        "mv_decel_time", # mvDecelTime - ip_0002_mv_decel_time
-                        "mv_e_a_ratio", # mvEARatio - ip_0002_mv_e_a_ratio
-                        "pv_at", # pvAccelTime - ip_0002_pv_at
+                        # "mv_decel_time", # mvDecelTime - ip_0002_mv_decel_time
+                        # "mv_e_a_ratio", # mvEARatio - ip_0002_mv_e_a_ratio
+                        # "pv_at", # pvAccelTime - ip_0002_pv_at
                         "pv_max_pg", # maxPVPG - ip_0002_pv_max_pg
                         "ra_pressure", # avRAPress - ip_0002_ra_pressure
                         "ra_vol_a4c", # minRAVolume - ip_0002_ra_vol_a4c - End Systolic
@@ -197,29 +197,29 @@ class cvsim6(circuitModel):
                         "pap_systolic", # maxPAPress - ip_0002_pap_systolic
                         "wedge_pressure"]) # avPCWPress - ip_0002_wedge_pressure
 
-    limits = np.array([[72.0,72.0], # hr - Heart Rate
-                       [0.01*mmHgToBarye,0.01*mmHgToBarye], # r_li - input left ventricular resistance
-                       [0.006*mmHgToBarye,0.006*mmHgToBarye], # r_lo - output left ventricular resistance
-                       [1.00*mmHgToBarye,1.00*mmHgToBarye], # r_a - arterial resistance
-                       [0.05*mmHgToBarye,0.05*mmHgToBarye], # r_ri - input right ventricular resistance
-                       [0.003*mmHgToBarye,0.003*mmHgToBarye], # r_ro - output right ventricular resistance
-                       [0.08*mmHgToBarye,0.08*mmHgToBarye], # r_pv - pulmonary venous resistance
-                       [-4.0*mmHgToBarye,-4.0*mmHgToBarye], # p_th - thoracic pressure
-                       [1.6/mmHgToBarye,1.6/mmHgToBarye], # c_a - arterial capacitance
-                       [100.0/mmHgToBarye,100.0/mmHgToBarye], # c_v - venous capacitance
-                       [4.3/mmHgToBarye,4.3/mmHgToBarye], # c_pa - capacitance of pulmonary arteries
-                       [8.4/mmHgToBarye,8.4/mmHgToBarye], # c_pv - capacitance of pulmonary veins
-                       [0.33,0.33], # 'tr_sys' - Systolic fraction of heart rate
-                       [0.4/mmHgToBarye,0.4/mmHgToBarye], # c_l_sys - Left ventricular systolic compliance
-                       [10.0/mmHgToBarye,10.0/mmHgToBarye], # c_l_dia - Left ventricular diastolic compliance
-                       [1.2/mmHgToBarye,1.2/mmHgToBarye], # c_r_sys - Right ventricular systolic compliance
-                       [20.0/mmHgToBarye,20.0/mmHgToBarye], # c_r_dia - Right ventricular diastolic compliance
-                       [15.00,15.00], # v_0_lv - Unstressed left ventricular volume
-                       [715.00,715.00], # v_0_a - Unstressed arterial volume
-                       [2500.00,2500.00], # v_0_v - Unstressed venous volume
-                       [15.00,15.00], # v_0_rv - Unstressed right ventricular volume
-                       [90.00,90.00], # v_0_pa - Unstressed pulmonary arterial volume
-                       [490.00,490.00]]) # v_0_pv - Unstressed pulmonary venous volume
+    limits = np.array([[40.0,100.0], # hr - Heart Rate - Resting bounds
+                       [0.007*mmHgToBarye,0.013*mmHgToBarye], # r_li - input left ventricular resistance - +/- 30% bounds
+                       [0.004*mmHgToBarye,0.008*mmHgToBarye], # r_lo - output left ventricular resistance - +/- 30% bounds
+                       [0.7*mmHgToBarye,1.30*mmHgToBarye], # r_a - arterial resistance - +/- 30% bounds
+                       [0.035*mmHgToBarye,0.065*mmHgToBarye], # r_ri - input right ventricular resistance - +/- 30% bounds
+                       [0.002*mmHgToBarye,0.004*mmHgToBarye], # r_ro - output right ventricular resistance - +/- 30% bounds
+                       [0.05*mmHgToBarye,0.11*mmHgToBarye], # r_pv - pulmonary venous resistance - +/- 30% bounds
+                       [-6.0*mmHgToBarye,-2.0*mmHgToBarye], # p_th - thoracic pressure
+                       [1.1/mmHgToBarye,2.1/mmHgToBarye], # c_a - arterial capacitance - +/- 30% bounds
+                       [70.0/mmHgToBarye,130.0/mmHgToBarye], # c_v - venous capacitance - +/- 30% bounds
+                       [3.0/mmHgToBarye,5.6/mmHgToBarye], # c_pa - capacitance of pulmonary arteries - +/- 30% bounds
+                       [6.0/mmHgToBarye,10.8/mmHgToBarye], # c_pv - capacitance of pulmonary veins - +/- 30% bounds
+                       [0.1,0.56], # 'tr_sys' - Systolic fraction of heart rate - +/- 30% bounds
+                       [0.28/mmHgToBarye,0.52/mmHgToBarye], # c_l_sys - Left ventricular systolic compliance - +/- 30% bounds
+                       [7.0/mmHgToBarye,13.0/mmHgToBarye], # c_l_dia - Left ventricular diastolic compliance
+                       [0.8/mmHgToBarye,1.6/mmHgToBarye], # c_r_sys - Right ventricular systolic compliance - +/- 30% bounds
+                       [13.0/mmHgToBarye,27.0/mmHgToBarye], # c_r_dia - Right ventricular diastolic compliance - +/- 30% bounds
+                       [10.00,20.00], # v_0_lv - Unstressed left ventricular volume - +/- 30% bounds
+                       [515.00,915.00], # v_0_a - Unstressed arterial volume - +/- 30% bounds
+                       [1600.00,3400.00], # v_0_v - Unstressed venous volume - +/- 30% bounds
+                       [10.00,20.00], # v_0_rv - Unstressed right ventricular volume - +/- 30% bounds
+                       [60.00,1200.00], # v_0_pa - Unstressed pulmonary arterial volume - +/- 30% bounds
+                       [340.00,640.00]]) # v_0_pv - Unstressed pulmonary venous volume - +/- 30% bounds
 
     # NOTE: CGS Units
     # Default Initial Conditions
@@ -405,8 +405,8 @@ class cvsim6(circuitModel):
       print("pvAccelTime: %f" % (pvAccelTime))
 
     # ALTERNATIVE COMPUTATION OF SVR and PVR
-    altSVR = 80.0*(((avAOPress/1333.22) - (avRAPress/1333.22))/(CO*(60.0/1000.0)))
-    altPVR = 80.0*(((avPAPress/1333.22) - (avPCWPress/1333.22))/(CO*(60.0/1000.0)))
+    altSVR = (avAOPress - avRAPress)/CO
+    altPVR = (avPAPress - avPCWPress)/CO
 
     # Assign Results Based on Model Version
     res = np.array([heartRate, # ip_0002_heart_rate2
@@ -424,9 +424,9 @@ class cvsim6(circuitModel):
                     RVEDP * baryeTommHg, # ip_0002_rvedp
                     meanAOVPG * baryeTommHg, # ip_0002_aov_mean_pg
                     maxAOVPG * baryeTommHg, # ip_0002_aov_peak_pg
-                    mvDecelTime, # ip_0002_mv_decel_time
-                    mvEARatio, # ip_0002_mv_e_a_ratio
-                    pvAccelTime, # ip_0002_pv_at
+                    # mvDecelTime, # ip_0002_mv_decel_time
+                    # mvEARatio, # ip_0002_mv_e_a_ratio
+                    # pvAccelTime, # ip_0002_pv_at
                     maxPVPG * baryeTommHg, # ip_0002_pv_max_pg
                     avRAPress * baryeTommHg, # ip_0002_ra_pressure
                     # Assume maximum (diastolic) volume
@@ -494,6 +494,19 @@ if __name__ == "__main__":
   dbFile = '../data/validation_dataset.csv'
   columnID = 2 # First Patient
 
-  ll = model.evalNegLL(columnID,dbFile,stds,params,y0)
+  ll,model_out,targets = model.evalNegLL(columnID,dbFile,stds,params,y0)
 
   print("Model Negative LL: ",ll)
+  print('')
+  print('%-15s %-15s' % ('Outputs','Measurement'))
+  for loopA in range(model_out.shape[0]):
+    print('%-15.3f %-15.3f' % (model_out[loopA],targets[loopA]))
+
+  model_out,_,_ = model.solve(params,y0=None)
+
+  print('')
+  print('%-15s %-15s' % ('Name','Output'))
+  for loopA in range(model_out.shape[0]):
+    print('%-15s %-15.3f' % (model.resName[loopA],model_out[loopA]))
+
+
