@@ -3,12 +3,12 @@ from cvsim6 import cvsim6
 from scipy.stats.qmc import Sobol
 from tqdm import tqdm
 from math import fabs
+import argparse
 
-def eval_sensitivity(model):
+def eval_sensitivity(model,num_base2=1):
   # Get Sobol samples
   sampler = Sobol(model.numParam)
-  # samples = sampler.random_base2(8)
-  samples = sampler.random_base2(1)
+  samples = sampler.random_base2(num_base2)
 
   # Set increment for every parameter
   delta_param = (model.limits[:,1]-model.limits[:,0])/100.0
@@ -44,6 +44,27 @@ def eval_sensitivity(model):
 
 # TESTING MODEL
 if __name__ == "__main__":
+
+  # Init parser
+  parser = argparse.ArgumentParser(description='Perform Morris screening for single-variable effects.')
+  
+  # num_sample_base2
+  parser.add_argument('-n', '--num',
+                      action=None,
+                      # nargs='+',
+                      const=None,
+                      default=1,
+                      type=int,
+                      choices=None,
+                      required=True,
+                      help='number of samples (base 2) to generate',
+                      metavar='',
+                      dest='num_samples')
+
+
+  # Parse Commandline Arguments
+  args = parser.parse_args()
+  
   # Init model
   cycleTime = 1.07
   totalCycles = 10
@@ -79,16 +100,15 @@ if __name__ == "__main__":
                    1.0]) # ip_0002_wedge_pressure
 
   # Evaluate Model Log-Likelihood
-  # dbFile = '../data/EHR_dataset.csv'
   dbFile = '../data/validation_dataset.csv'
-  columnID = 2 # First Patient
+  columnID = 2 # Healty patient
 
   # Compute Morris Sensitivity Indices
-  morris_avg,morris_std = eval_sensitivity(model)
+  morris_avg,morris_std = eval_sensitivity(model,args.num_samples)
 
   # Save file for retrieval
-  np.save('cvsim6_morris_avg',morris_avg)
-  np.save('cvsim6_morris_std',morris_std)
+  np.save('cvsim6_morris_avg_'+str(args.num_samples),morris_avg)
+  np.save('cvsim6_morris_std_'+str(args.num_samples),morris_std)
   
   print('%-15s %-20s %-20s' % ('Param','Avg Morris Coeff','Std Morris Coeff'))
   for loopA in range(model.numParam):
