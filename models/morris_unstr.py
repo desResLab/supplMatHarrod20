@@ -30,8 +30,8 @@ def eval_sensitivity(model,num_base2=1):
         curr_param_1[loopA] += delta_param[loopA]
         curr_param_2[loopA] -= delta_param[loopA]
         # Find the ll for the two parameter perturbations
-        ll1,_,_ = model.evalNegLL(columnID,dbFile,stds,curr_param_1,y0=None)
-        ll2,_,_ = model.evalNegLL(columnID,dbFile,stds,curr_param_2,y0=None)
+        ll1,_,_,_,_ = model.evalNegLL(columnID,dbFile,stds,curr_param_1,y0=None)
+        ll2,_,_,_,_ = model.evalNegLL(columnID,dbFile,stds,curr_param_2,y0=None)
         print(ll1,ll2)
         # Store the adimensional coefficients 
         morris_res[loopB,loopA] = fabs(((ll1-ll2)/(2*delta_param[loopA]))*(curr_param_2[loopA]/ll2))*100
