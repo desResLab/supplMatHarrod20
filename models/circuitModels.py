@@ -2,7 +2,7 @@ import numpy as np
 import time
 from c_routines import solveRK4_aux
 
-# mmHg to Baryes Conversion Factor
+# mmHg to Barye Conversion Factor
 mmHgToBarye = 1333.22
 baryeTommHg = 1.0/1333.22
 

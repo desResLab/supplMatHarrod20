@@ -4,6 +4,31 @@ import scipy.signal as sp
 from circuitModels import circuitModel,mmHgToBarye,baryeTommHg
 from c_routines import evalDeriv_cvsim6, eval_cvsim6_ic
 
+# MODEL PARAMETERS
+i_hr      = 0
+i_r_li    = 1
+i_r_lo    = 2 
+i_r_a     = 3 
+i_r_ri    = 4
+i_r_ro    = 5 
+i_r_pv    = 6
+i_p_th    = 7 
+i_c_a     = 8 
+i_c_v     = 9 
+i_c_pa    = 10 
+i_c_pv    = 11
+i_tr_sys  = 12
+i_c_l_sys = 13
+i_c_l_dia = 14
+i_c_r_sys = 15
+i_c_r_dia = 16
+i_v_0_lv  = 17
+i_v_0_a   = 18
+i_v_0_v   = 19
+i_v_0_rv  = 20
+i_v_0_pa  = 21
+i_v_0_pv  = 22
+
 # STATE VARIABLES
 i_p_l  = 0
 i_p_a  = 1
@@ -200,7 +225,7 @@ class cvsim6(circuitModel):
     limits = np.array([[40.0,100.0], # hr - Heart Rate - Resting bounds
                        [0.007*mmHgToBarye,0.013*mmHgToBarye], # r_li - input left ventricular resistance - +/- 30% bounds
                        [0.004*mmHgToBarye,0.008*mmHgToBarye], # r_lo - output left ventricular resistance - +/- 30% bounds
-                       [0.7*mmHgToBarye,1.30*mmHgToBarye], # r_a - arterial resistance - +/- 30% bounds
+                       [0.5*mmHgToBarye,2.0*mmHgToBarye], # r_a - arterial resistance - +/- 30% bounds
                        [0.035*mmHgToBarye,0.065*mmHgToBarye], # r_ri - input right ventricular resistance - +/- 30% bounds
                        [0.002*mmHgToBarye,0.004*mmHgToBarye], # r_ro - output right ventricular resistance - +/- 30% bounds
                        [0.05*mmHgToBarye,0.11*mmHgToBarye], # r_pv - pulmonary venous resistance - +/- 30% bounds
@@ -453,12 +478,9 @@ if __name__ == "__main__":
   # y0        = model.defIC
   y0        = None
   params    = model.defParam
-  outs      = model.solve(params=params,y0=y0)
-  outLabels = model.resName
 
-  if(False):
-    for loopA in range(len(outLabels)):
-      print("%30s %-8f" % (outLabels[loopA],outs[loopA]))
+  # Change Arterial Resistance
+  params[i_r_a] = 1.5*params[i_r_a]
 
   # Array with measurement standard deviations - same size of the model result vector
   stds = np.array([3.0,  # ip_0002_heart_rate2
@@ -494,19 +516,19 @@ if __name__ == "__main__":
   dbFile = '../data/validation_dataset.csv'
   columnID = 2 # First Patient
 
-  ll,model_out,targets = model.evalNegLL(columnID,dbFile,stds,params,y0)
+  ll,model_out,targets,stds,keys = model.evalNegLL(columnID,dbFile,stds,params,y0)
 
   print("Model Negative LL: ",ll)
   print('')
-  print('%-15s %-15s' % ('Outputs','Measurement'))
-  for loopA in range(model_out.shape[0]):
-    print('%-15.3f %-15.3f' % (model_out[loopA],targets[loopA]))
-
-  model_out,_,_ = model.solve(params,y0=None)
-
+  print("Model Parameters")
   print('')
-  print('%-15s %-15s' % ('Name','Output'))
+  print('%-20s %-15s' % ('Param','Value'))
+  for loopA in range(len(params)):
+    print('%-20s %-15.3f' % (model.parName[loopA],params[loopA]))
+  print('')
+  print('%-30s %-15s %-15s' % ('Target','Outputs','Measurement'))
   for loopA in range(model_out.shape[0]):
-    print('%-15s %-15.3f' % (model.resName[loopA],model_out[loopA]))
+    print('%-30s %-15.3f %-15.3f' % (keys[loopA][0],model_out[loopA],targets[loopA]))
+
 
 
