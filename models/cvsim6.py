@@ -514,9 +514,9 @@ def test_cvsim6():
                    1.0,  # ip_0002_rvedp
                    0.5,  # ip_0002_aov_mean_pg
                    0.5,  # ip_0002_aov_peak_pg
-                   6.0,  # ip_0002_mv_decel_time
-                   0.2,  # ip_0002_mv_e_a_ratio
-                   6.0,  # ip_0002_pv_at
+                   # 6.0,  # ip_0002_mv_decel_time
+                   # 0.2,  # ip_0002_mv_e_a_ratio
+                   # 6.0,  # ip_0002_pv_at
                    0.5,  # ip_0002_pv_max_pg
                    0.5,  # ip_0002_ra_pressure
                    3.0,  # ip_0002_ra_vol_a4c - End Systolic
@@ -560,9 +560,9 @@ def eval_obj(params_red,model,input_map):
                    1.0,  # ip_0002_rvedp
                    0.5,  # ip_0002_aov_mean_pg
                    0.5,  # ip_0002_aov_peak_pg
-                   6.0,  # ip_0002_mv_decel_time
-                   0.2,  # ip_0002_mv_e_a_ratio
-                   6.0,  # ip_0002_pv_at
+                   # 6.0,  # ip_0002_mv_decel_time
+                   # 0.2,  # ip_0002_mv_e_a_ratio
+                   # 6.0,  # ip_0002_pv_at
                    0.5,  # ip_0002_pv_max_pg
                    0.5,  # ip_0002_ra_pressure
                    3.0,  # ip_0002_ra_vol_a4c - End Systolic
@@ -578,7 +578,7 @@ def eval_obj(params_red,model,input_map):
   dbFile = '../data/validation_EHR.txt'
   columnID = 0
 
-  ll,model_out,targets,stds,keys = model.evalNegLL(columnID,dbFile,stds,params,y0)
+  ll,model_out,targets,stds_out,keys = model.evalNegLL(columnID,dbFile,stds,params,y0)
 
   print(ll)
 
@@ -614,9 +614,9 @@ def optimize_cvsim6():
                   1.0,  # ip_0002_rvedp
                   0.5,  # ip_0002_aov_mean_pg
                   0.5,  # ip_0002_aov_peak_pg
-                  6.0,  # ip_0002_mv_decel_time
-                  0.2,  # ip_0002_mv_e_a_ratio
-                  6.0,  # ip_0002_pv_at
+                  # 6.0,  # ip_0002_mv_decel_time
+                  # 0.2,  # ip_0002_mv_e_a_ratio
+                  # 6.0,  # ip_0002_pv_at
                   0.5,  # ip_0002_pv_max_pg
                   0.5,  # ip_0002_ra_pressure
                   3.0,  # ip_0002_ra_vol_a4c - End Systolic
@@ -632,16 +632,70 @@ def optimize_cvsim6():
   dbFile = '../data/validation_EHR.txt'
   columnID = 0
   y0 = None
-  ll,model_out,targets,stds,keys = model.evalNegLL(columnID,dbFile,stds,final_params,y0)
+  ll,model_out,targets,stds_out,keys = model.evalNegLL(columnID,dbFile,stds,final_params,y0)
 
-  print_cvsim6_results(model,final_params,ll,model_out,targets,stds,keys)
+  print_cvsim6_results(model,final_params,ll,model_out,targets,stds_out,keys)
 
+
+def eval_cvsim6_grad():  
+  
+  cycleTime = 1.07
+  totalCycles = 10
+  model = cvsim6(cycleTime,totalCycles)
+
+  stds = np.array([3.0,  # ip_0002_heart_rate2
+                  1.5,  # ip_0002_systolic_bp_2
+                  1.5,  # ip_0002_diastolic_bp_2
+                  0.2,  # ip_0002_cardiac_output
+                  50.0, # ip_0002_systemic_vascular_resistan
+                  5.0,  # ip_0002_pulmonary_vascular_resista
+                  0.5,  # ip_0002_cvp
+                  1.0,  # ip_0002_right_ventricle_diastole
+                  1.0,  # ip_0002_right_ventricle_systole
+                  1.0,  # left_ventricle_diastole
+                  1.0,  # left_ventricle_systole
+                  1.0,  # ip_0002_rvedp
+                  0.5,  # ip_0002_aov_mean_pg
+                  0.5,  # ip_0002_aov_peak_pg
+                  # 6.0,  # ip_0002_mv_decel_time
+                  # 0.2,  # ip_0002_mv_e_a_ratio
+                  # 6.0,  # ip_0002_pv_at
+                  0.5,  # ip_0002_pv_max_pg
+                  0.5,  # ip_0002_ra_pressure
+                  3.0,  # ip_0002_ra_vol_a4c - End Systolic
+                  3.0,  # ip_0002_la_vol_a4c - End Systolic
+                  10.0, # ip_0002_lv_esv
+                  20.0, # ip_0002_lv_vol
+                  2.0,  # ip_0002_lvef
+                  1.0,  # ip_0002_pap_diastolic
+                  1.0,  # ip_0002_pap_systolic
+                  1.0]) # ip_0002_wedge_pressure
+
+  dbFile = '../data/validation_EHR.txt'
+  columnID = 0
+  y0 = None
+
+  # Delta in percent
+  delta = 1.0
+
+  # Use Default parameters
+  params = model.defParam
+
+  # Compute gradient and return
+  res = model.eval_negll_grad(delta,columnID,dbFile,stds,params,y0)
+  print('gradient: ',res)
+  
+
+# =============
 # TESTING MODEL
+# =============
 if __name__ == "__main__":
   
   # test_cvsim6()
 
-  optimize_cvsim6()
+  # optimize_cvsim6()
+
+  eval_cvsim6_grad()
 
 
   

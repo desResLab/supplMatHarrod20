@@ -19,7 +19,7 @@ def extractPatientFromDB(dbFile,columnID,resName,stds):
   patVals = data[:,columnID+1]
 
   # Remove the components where the data is "none"
-  mask = np.where(np.char.upper(patLabels) == 'NONE')
+  mask = np.where(np.char.upper(patVals) == 'NONE')
   patLabels = np.delete(patLabels, mask)
   patVals = np.delete(patVals, mask)
 
@@ -197,20 +197,20 @@ class circuitModel():
     modelOut,solveTime,postTime  = self.solve(currParams,currIni)
     
     # Match the measurements from the dataset with the model output
-    time1                        = time.time()
-    keys,modOut,measurement,stds = extractModelMatch(modelOut,self.resName,patData,patLabels,patStd)
-    matchOutTime                 = (time.time()-time1)*1000 # Microseconds
+    time1                            = time.time()
+    keys,modOut,measurement,stds_out = extractModelMatch(modelOut,self.resName,patData,patLabels,patStd)
+    matchOutTime                     = (time.time()-time1)*1000 # Microseconds
     
     if(self.verbose):
       print("")
       print("%30s %15s %15s %15s" % ("Key","Output","Data","Std"))
       for loopA in range(len(modOut)):       
-        print("%30s %15.1f %15.1f %15.1f" % (keys[loopA,0],modOut[loopA,0],measurement[loopA,0],stds[loopA,0]))
+        print("%30s %15.1f %15.1f %15.1f" % (keys[loopA,0],modOut[loopA,0],measurement[loopA,0],stds_out[loopA,0]))
 
     # Eval LL
     ll1 = -0.5*np.prod(measurement.shape)*np.log(2.0*np.pi)
-    ll2 = -0.5*measurement.shape[1]*np.log(np.prod(stds))
-    ll3 = -0.5*((modOut.reshape(-1,1)-measurement)**2/(stds.reshape(-1,1)**2)).sum()
+    ll2 = -0.5*measurement.shape[1]*np.log(np.prod(stds_out))
+    ll3 = -0.5*((modOut.reshape(-1,1)-measurement)**2/(stds_out.reshape(-1,1)**2)).sum()
     negLL = -(ll1 + ll2 + ll3)
 
     if(self.verbose and self.debugMode):
@@ -221,7 +221,7 @@ class circuitModel():
       print("Matching Model Ouputs. Time: %f ms" % (matchOutTime))
       print("---")
 
-    return negLL,modOut,measurement,stds,keys
+    return negLL,modOut,measurement,stds_out,keys
 
   def eval_negll_grad(self,delta,columnID,dbFile,stds,params=None,y0=None):
     """
@@ -230,6 +230,7 @@ class circuitModel():
     """
     # Create parameter table
     param_table = np.repeat(params.reshape(-1,1),len(params)+1,axis=1)
+
     incr = np.zeros(len(params))
     # Loop through the parameters and add increments
     for loopA in range(len(params)):
@@ -241,7 +242,7 @@ class circuitModel():
 
     # Solve models
     for loopA in range(len(params)+1):
-      negLL,modOut,measurement,stds,keys = self.evalNegLL(self,columnID,dbFile,stds,params=None,y0=None)
+      negLL,modOut,measurement,stds_out,keys = self.evalNegLL(columnID,dbFile,stds,np.ascontiguousarray(param_table[:,loopA]),y0)
       res[loopA] = negLL
 
     # Compute gradient
