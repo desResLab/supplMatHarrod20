@@ -222,3 +222,31 @@ class circuitModel():
       print("---")
 
     return negLL,modOut,measurement,stds,keys
+
+  def eval_negll_grad(self,delta,columnID,dbFile,stds,params=None,y0=None):
+    """
+    Evaluating the gradient of the negative ll.
+    delta is the percent change in the inputs, so delta=1 corrisponds to 1% change
+    """
+    # Create parameter table
+    param_table = np.repeat(params.reshape(-1,1),len(params)+1,axis=1)
+    incr = np.zeros(len(params))
+    # Loop through the parameters and add increments
+    for loopA in range(len(params)):
+      incr[loopA] = (delta/100.0)*param_table[loopA,loopA+1]
+      param_table[loopA,loopA+1] += incr[loopA]
+    
+    # Compute model outputs
+    res = np.zeros(len(params)+1)
+
+    # Solve models
+    for loopA in range(len(params)+1):
+      negLL,modOut,measurement,stds,keys = self.evalNegLL(self,columnID,dbFile,stds,params=None,y0=None)
+      res[loopA] = negLL
+
+    # Compute gradient
+    grad = np.zeros(len(params))
+    for loopA in range(len(params)):
+      grad[loopA] = (res[loopA+1] - res[0])/incr[loopA]
+
+    return grad

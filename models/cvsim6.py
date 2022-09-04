@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.signal as sp
+import scipy.optimize as so
 from circuitModels import circuitModel,mmHgToBarye,baryeTommHg
 from c_routines import evalDeriv_cvsim6, eval_cvsim6_ic
 
@@ -467,9 +468,25 @@ class cvsim6(circuitModel):
 
     return res
 
-# TESTING MODEL
-if __name__ == "__main__":
+def print_cvsim6_results(model,params,ll,model_out,targets,stds,keys):
+  print("Model Negative LL: ",ll)
+  print('')
+  print("Model Parameters")
+  print('')
+  print('%-20s %-15s' % ('Param','Value'))
+  for loopA in range(len(params)):
+    print('%-20s %-15.3f' % (model.parName[loopA],params[loopA]))
+  print('')
+  print('%-30s %-15s %-15s' % ('Target','Outputs','Measurement'))
+  for loopA in range(model_out.shape[0]):
+    print('%-30s %-15.3f %-15.3f' % (keys[loopA][0],model_out[loopA],targets[loopA]))
 
+
+def test_cvsim6():
+  '''
+  Testing functionality for CVSIM6 model
+  '''
+  
   cycleTime = 1.07
   totalCycles = 10
   model = cvsim6(cycleTime,totalCycles,debugMode=False)
@@ -480,7 +497,7 @@ if __name__ == "__main__":
   params    = model.defParam
 
   # Change Arterial Resistance
-  params[i_r_a] = 1.5*params[i_r_a]
+  # params[i_r_a] = 1.5*params[i_r_a]
 
   # Array with measurement standard deviations - same size of the model result vector
   stds = np.array([3.0,  # ip_0002_heart_rate2
@@ -512,23 +529,119 @@ if __name__ == "__main__":
                    1.0]) # ip_0002_wedge_pressure
 
   # Evaluate Model Log-Likelihood
-  # dbFile = '../data/EHR_dataset.csv'
-  dbFile = '../data/validation_dataset.csv'
-  columnID = 2 # First Patient
+  dbFile = '../data/validation_EHR.txt'
+  columnID = 0
 
   ll,model_out,targets,stds,keys = model.evalNegLL(columnID,dbFile,stds,params,y0)
 
-  print("Model Negative LL: ",ll)
-  print('')
-  print("Model Parameters")
-  print('')
-  print('%-20s %-15s' % ('Param','Value'))
-  for loopA in range(len(params)):
-    print('%-20s %-15.3f' % (model.parName[loopA],params[loopA]))
-  print('')
-  print('%-30s %-15s %-15s' % ('Target','Outputs','Measurement'))
-  for loopA in range(model_out.shape[0]):
-    print('%-30s %-15.3f %-15.3f' % (keys[loopA][0],model_out[loopA],targets[loopA]))
+  print_cvsim6_results(model,params,ll,model_out,targets,stds,keys)
+
+def eval_obj(params_red,model,input_map):
+
+  # Get full parameter array
+  params = model.defParam
+  params[input_map] = params_red
+
+  # Get Default Initial Conditions
+  y0 = None
+
+  # Array with measurement standard deviations - same size of the model result vector
+  stds = np.array([3.0,  # ip_0002_heart_rate2
+                   1.5,  # ip_0002_systolic_bp_2
+                   1.5,  # ip_0002_diastolic_bp_2
+                   0.2,  # ip_0002_cardiac_output
+                   50.0, # ip_0002_systemic_vascular_resistan
+                   5.0,  # ip_0002_pulmonary_vascular_resista
+                   0.5,  # ip_0002_cvp
+                   1.0,  # ip_0002_right_ventricle_diastole
+                   1.0,  # ip_0002_right_ventricle_systole
+                   1.0,  # left_ventricle_diastole
+                   1.0,  # left_ventricle_systole
+                   1.0,  # ip_0002_rvedp
+                   0.5,  # ip_0002_aov_mean_pg
+                   0.5,  # ip_0002_aov_peak_pg
+                   6.0,  # ip_0002_mv_decel_time
+                   0.2,  # ip_0002_mv_e_a_ratio
+                   6.0,  # ip_0002_pv_at
+                   0.5,  # ip_0002_pv_max_pg
+                   0.5,  # ip_0002_ra_pressure
+                   3.0,  # ip_0002_ra_vol_a4c - End Systolic
+                   3.0,  # ip_0002_la_vol_a4c - End Systolic
+                   10.0, # ip_0002_lv_esv
+                   20.0, # ip_0002_lv_vol
+                   2.0,  # ip_0002_lvef
+                   1.0,  # ip_0002_pap_diastolic
+                   1.0,  # ip_0002_pap_systolic
+                   1.0]) # ip_0002_wedge_pressure
+
+  # Evaluate Model Log-Likelihood
+  dbFile = '../data/validation_EHR.txt'
+  columnID = 0
+
+  ll,model_out,targets,stds,keys = model.evalNegLL(columnID,dbFile,stds,params,y0)
+
+  print(ll)
+
+  return ll
+
+def optimize_cvsim6():
+
+  cycleTime = 1.07
+  totalCycles = 10
+  model = cvsim6(cycleTime,totalCycles,debugMode=False)
+
+  input_map = [0,3]
+
+  params_red = model.defParam[input_map]
+
+  # Run the optimizer
+  res = so.minimize(eval_obj, params_red,args=(model,input_map),tol=1.0e-6)
+
+  final_params = model.defParam
+  final_params[input_map] = res.x
+
+  stds = np.array([3.0,  # ip_0002_heart_rate2
+                  1.5,  # ip_0002_systolic_bp_2
+                  1.5,  # ip_0002_diastolic_bp_2
+                  0.2,  # ip_0002_cardiac_output
+                  50.0, # ip_0002_systemic_vascular_resistan
+                  5.0,  # ip_0002_pulmonary_vascular_resista
+                  0.5,  # ip_0002_cvp
+                  1.0,  # ip_0002_right_ventricle_diastole
+                  1.0,  # ip_0002_right_ventricle_systole
+                  1.0,  # left_ventricle_diastole
+                  1.0,  # left_ventricle_systole
+                  1.0,  # ip_0002_rvedp
+                  0.5,  # ip_0002_aov_mean_pg
+                  0.5,  # ip_0002_aov_peak_pg
+                  6.0,  # ip_0002_mv_decel_time
+                  0.2,  # ip_0002_mv_e_a_ratio
+                  6.0,  # ip_0002_pv_at
+                  0.5,  # ip_0002_pv_max_pg
+                  0.5,  # ip_0002_ra_pressure
+                  3.0,  # ip_0002_ra_vol_a4c - End Systolic
+                  3.0,  # ip_0002_la_vol_a4c - End Systolic
+                  10.0, # ip_0002_lv_esv
+                  20.0, # ip_0002_lv_vol
+                  2.0,  # ip_0002_lvef
+                  1.0,  # ip_0002_pap_diastolic
+                  1.0,  # ip_0002_pap_systolic
+                  1.0]) # ip_0002_wedge_pressure
 
 
+  dbFile = '../data/validation_EHR.txt'
+  columnID = 0
+  y0 = None
+  ll,model_out,targets,stds,keys = model.evalNegLL(columnID,dbFile,stds,final_params,y0)
 
+  print_cvsim6_results(model,final_params,ll,model_out,targets,stds,keys)
+
+# TESTING MODEL
+if __name__ == "__main__":
+  
+  # test_cvsim6()
+
+  optimize_cvsim6()
+
+
+  

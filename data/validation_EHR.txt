@@ -1,0 +1,13 @@
+heart_rate2,72.000,72.000
+systolic_bp_2,133.413,102.538
+diastolic_bp_2,103.867,71.808
+cardiac_output,4.533,4.861
+systemic_vascular_resistan,2112.413,1448.999
+right_ventricle_diastole,-2.182,-2.134
+right_ventricle_systole,20.279,20.405
+left_ventricle_diastole,3.347,2.462
+left_ventricle_systole,133.979,103.164
+ra_pressure,0.057,0.061
+pap_diastolic,10.493,9.968
+pap_systolic,19.883,19.980
+wedge_pressure,9.149,8.456
