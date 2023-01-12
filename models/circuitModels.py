@@ -151,7 +151,7 @@ class circuitModel():
     solveTime = (time.time()-time1)*1000 # Microseconds
 
     # Post Process - Start and Stop should be computed with respect to the saved steps
-    start = (self.totalCycles-1)*savePerCycle
+    start = (self.totalCycles-2)*savePerCycle
     stop  = self.totalCycles*savePerCycle
 
     # Return Post-processed data

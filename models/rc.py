@@ -53,8 +53,10 @@ if __name__ == "__main__":
   y0        = model.defIC
   # Get Default Model Parameters
   params    = model.defParam
+  print(params)
   # Solve Model and Get Outputs
   outs      = model.solve(params=params,y0=y0)[0]
+  print(outs)
   outLabels = model.resName
 
   # Array with measurement standard deviations - same size of the model result vector

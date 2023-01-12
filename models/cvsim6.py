@@ -294,26 +294,121 @@ class cvsim6(circuitModel):
     return evalDeriv_cvsim6(t,y,params,self.numState,self.numAuxState)
 
   def plot_model(self,t,y,aux,start,stop):
-    # Plot results
-    plt.figure(figsize=(10,3))
-    plt.subplot(1,2,1)
-    plt.plot(t,y[i_p_l]/mmHgToBarye,label='p_l')
-    plt.plot(t,y[i_p_a]/mmHgToBarye,label='p_a')
-    plt.plot(t,y[i_p_v]/mmHgToBarye,label='p_v')
-    plt.plot(t,y[i_p_r]/mmHgToBarye,label='p_r')
-    plt.plot(t,y[i_p_pa]/mmHgToBarye,label='p_pa')
-    plt.plot(t,y[i_p_pv]/mmHgToBarye,label='p_pv')
-    plt.legend()
-    plt.xlabel('Time [s]')
-    plt.ylabel('Pressure [mmHg]')
-    plt.subplot(1,2,2)
-    plt.plot(aux[i_v_l],y[i_p_l]/mmHgToBarye,label='left')
-    plt.legend()
-    plt.xlabel('Volume [mL]')
-    plt.ylabel('Pressure [mmHg]')
-    plt.tight_layout()
-    plt.show()
-    plt.close()
+    show_id = 0
+    # Plot settings
+    fs=10
+    plt.rc('font', family='serif')
+    plt.rc('xtick', labelsize='x-small')
+    plt.rc('ytick', labelsize='x-small')
+    plt.rc('text', usetex=True)
+
+    ### SYSTEMIC SIDE
+    if(show_id == 0):
+
+      # Pressure
+      plt.figure(figsize=(3,3))    
+      plt.plot(t[start:stop],y[i_p_l,start:stop]/mmHgToBarye,'k',ls='-',label='LV Pressure')
+      plt.plot(t[start:stop],y[i_p_a,start:stop]/mmHgToBarye,'k',ls='--',label='Systemic Arterial Pressure')
+      plt.plot(t[start:stop],y[i_p_pv,start:stop]/mmHgToBarye,'k',ls='-.',label='Pulmonary Venous Pressure')
+      plt.legend(loc=4,fontsize=fs-2)
+      plt.xlabel('Time [s]',fontsize=fs)
+      plt.ylabel('Pressure [mmHg]',fontsize=fs)
+      plt.ylim([-40,110])
+      plt.tick_params(axis='both', which='both', labelsize=fs)
+      plt.tight_layout()
+      # plt.show()
+      plt.savefig('cvsim_01.pdf')
+      plt.close()      
+
+    elif(show_id == 1):
+
+      # Volume
+      plt.figure(figsize=(3,3))
+      plt.plot(t[start:stop],aux[i_v_l,start:stop],'k',ls='-',label='LV Volume')
+      plt.plot(t[start:stop],aux[i_v_a,start:stop],'k',ls='--',label='Systemic Arterial Volume')
+      plt.plot(t[start:stop],aux[i_v_pv,start:stop],'k',ls='-.',label='Pulmonary Venous Volume')
+      plt.legend(loc=4,fontsize=fs-2)
+      plt.xlabel('Time [s]',fontsize=fs)
+      plt.ylabel('Volume [mL]',fontsize=fs)
+      plt.ylim([-400,1000])
+      plt.tick_params(axis='both', which='both', labelsize=fs)
+      plt.tight_layout()
+      # plt.show()
+      plt.savefig('cvsim_02.pdf')
+      plt.close()
+
+    elif(show_id == 2):
+
+      # Flow
+      plt.figure(figsize=(3,3))
+      plt.plot(t[start:stop],aux[i_q_ro,start:stop],'k',ls='-',label='LV Outflow')
+      plt.plot(t[start:stop],aux[i_q_a,start:stop],'k',ls='--',label='Systemic Microcirculatory Flow')    
+      plt.plot(t[start:stop],aux[i_q_li,start:stop],'k',ls='-.',label='LV Inflow')
+      plt.legend(loc=4,fontsize=fs-2)
+      plt.xlabel('Time [s]',fontsize=fs)
+      plt.ylabel('Flow [mL/s]',fontsize=fs)
+      plt.tick_params(axis='both', which='both', labelsize=fs)
+      plt.tight_layout()
+      plt.ylim([-300,800])
+      # plt.show()
+      plt.savefig('cvsim_03.pdf')
+      plt.close()
+
+    elif(show_id == 3):
+
+      ### PULMONARY SIDE
+
+      # Pressure
+      plt.figure(figsize=(3,3))
+      plt.plot(t[start:stop],y[i_p_r,start:stop]/mmHgToBarye,'k',ls='-',label='RV Pressure')
+      plt.plot(t[start:stop],y[i_p_pa,start:stop]/mmHgToBarye,'k',ls='--',label='Pulmonary Arterial Pressure')
+      plt.plot(t[start:stop],y[i_p_v,start:stop]/mmHgToBarye,'k',ls='-.',label='Systemic Venous Pressure')
+      plt.legend(fontsize=fs-2)
+      plt.xlabel('Time [s]',fontsize=fs)
+      plt.ylabel('Pressure [mmHg]',fontsize=fs)
+      plt.tick_params(axis='both', which='both', labelsize=fs)
+      plt.tight_layout()
+      plt.ylim([-15,25])
+      # plt.show()
+      plt.savefig('cvsim_04.pdf')
+      plt.close()
+
+    elif(show_id == 4):
+
+      # Volume
+      plt.figure(figsize=(3,3))
+      plt.plot(t[start:stop],aux[i_v_r,start:stop],'k',ls='-',label='RV Volume')
+      plt.plot(t[start:stop],aux[i_v_pa,start:stop],'k',ls='--',label='Pulmonary Arterial Volume')
+      plt.plot(t[start:stop],aux[i_v_v,start:stop],'k',ls='-.',label='Systemic Venous Volume')
+      plt.legend(fontsize=fs-2)
+      plt.xlabel('Time [s]',fontsize=fs)
+      plt.ylabel('Volume [mL]',fontsize=fs)
+      plt.tick_params(axis='both', which='both', labelsize=fs)
+      plt.tight_layout()
+      # plt.show()
+      plt.savefig('cvsim_05.pdf')
+      plt.close()
+
+    elif(show_id == 5):
+
+      # Flow
+      plt.figure(figsize=(3,3))
+      plt.plot(t[start:stop],aux[i_q_lo,start:stop],'k',ls='-',label='RV Outflow')
+      plt.plot(t[start:stop],aux[i_q_pv,start:stop],'k',ls='--',label='Pulmonary Microcirculatory Flow')    
+      plt.plot(t[start:stop],aux[i_q_ri,start:stop],'k',ls='-.',label='RV Inflow')
+      plt.legend(fontsize=fs-2)
+      plt.xlabel('Tims [s]',fontsize=fs)
+      plt.ylabel('Flow [mL/s]',fontsize=fs)
+      plt.tick_params(axis='both', which='both', labelsize=fs)
+      plt.tight_layout()
+      plt.ylim([-400,800])
+      # plt.show()
+      plt.savefig('cvsim_06.pdf')
+      plt.close()
+
+    else:
+      print('Invalid show_id')
+      exit(-1)
 
   def postProcess(self,t,y,aux,start,stop):
 
@@ -489,7 +584,7 @@ def test_cvsim6():
   
   cycleTime = 1.07
   totalCycles = 10
-  model = cvsim6(cycleTime,totalCycles,debugMode=False)
+  model = cvsim6(cycleTime,totalCycles,debugMode=True)
 
   # Get Default Initial Conditions
   # y0        = model.defIC
@@ -691,11 +786,11 @@ def eval_cvsim6_grad():
 # =============
 if __name__ == "__main__":
   
-  # test_cvsim6()
+  test_cvsim6()
 
   # optimize_cvsim6()
 
-  eval_cvsim6_grad()
+  # eval_cvsim6_grad()
 
 
   
