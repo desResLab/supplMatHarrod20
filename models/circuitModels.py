@@ -34,7 +34,7 @@ def extractPatientFromDB(dbFile,columnID,resName,stds):
     patStd.append(stds[idx[0][0]])
 
   # return the data you found and the associated labels
-  return patLabels,patVals.astype(np.float),np.array(patStd).astype(np.float)
+  return patLabels,patVals.astype(np.float64),np.array(patStd).astype(np.float64)
       
 def extractModelMatch(out,outLabels,data,dataLabels,dataStd):
   '''
@@ -146,6 +146,8 @@ class circuitModel():
     saveEvery = int(self.timeStepsPerCycle/savePerCycle)
 
     # Integrate System
+    # Note: Current RK4 numerical integrator has the fixed step size. 
+    #       Consider using an adaptive solver for obtaining more accurate results
     time1     = time.time()
     t,y,aux = self.solveRK4(self.timeStep, totalSteps, saveEvery, self.y0, self.params)
     solveTime = (time.time()-time1)*1000 # Microseconds
