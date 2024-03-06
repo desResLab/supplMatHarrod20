@@ -242,10 +242,11 @@ class cvsim6(circuitModel):
                        [13.0/mmHgToBarye,27.0/mmHgToBarye], # c_r_dia - Right ventricular diastolic compliance - +/- 30% bounds
                        [10.00,20.00], # v_0_lv - Unstressed left ventricular volume - +/- 30% bounds
                        [515.00,915.00], # v_0_a - Unstressed arterial volume - +/- 30% bounds
-                       [1600.00,3400.00], # v_0_v - Unstressed venous volume - +/- 30% bounds
+                       [1600.00,3200.00], # v_0_v - Unstressed venous volume - +/- 30% bounds
                        [10.00,20.00], # v_0_rv - Unstressed right ventricular volume - +/- 30% bounds
-                       [60.00,1200.00], # v_0_pa - Unstressed pulmonary arterial volume - +/- 30% bounds
+                       [60.00,120.00], # v_0_pa - Unstressed pulmonary arterial volume - +/- 30% bounds
                        [340.00,640.00]]) # v_0_pv - Unstressed pulmonary venous volume - +/- 30% bounds
+                        # Note: the sum of all upper bounds of v_0 should be less than 5000 ml
 
     # NOTE: CGS Units
     # Default Initial Conditions
@@ -423,12 +424,12 @@ class cvsim6(circuitModel):
     # RA PRESSURE
     minRAPress = np.min(y[i_p_v,start:stop])
     maxRAPress = np.max(y[i_p_v,start:stop])
-    avRAPress  = getMean(t[start:stop],aux[i_p_v,start:stop])
+    avRAPress  = getMean(t[start:stop],y[i_p_v,start:stop])
     
     # RV PRESSURE
     minRVPress  = np.min(y[i_p_r,start:stop])
     maxRVPress  = np.max(y[i_p_r,start:stop])
-    avRVPress   = getMean(t[start:stop],aux[i_p_r,start:stop])
+    avRVPress   = getMean(t[start:stop],y[i_p_r,start:stop])
         
     # SYSTOLIC, DIASTOLIC AND AVERAGE PA PRESSURES
     minPAPress = np.min(y[i_p_pa,start:stop])
@@ -581,8 +582,8 @@ def test_cvsim6():
   '''
   Testing functionality for CVSIM6 model
   '''
-  
-  cycleTime = 1.07
+  # cycleTime: 60(s)/Heart rate
+  cycleTime = 60. / model.defParam[0]
   totalCycles = 10
   model = cvsim6(cycleTime,totalCycles,debugMode=True)
 
@@ -681,7 +682,8 @@ def eval_obj(params_red,model,input_map):
 
 def optimize_cvsim6():
 
-  cycleTime = 1.07
+  # cycleTime: 60(s)/Heart rate
+  cycleTime = 60. / model.defParam[0]
   totalCycles = 10
   model = cvsim6(cycleTime,totalCycles,debugMode=False)
 
@@ -734,7 +736,8 @@ def optimize_cvsim6():
 
 def eval_cvsim6_grad():  
   
-  cycleTime = 1.07
+  # cycleTime: 60(s)/Heart rate
+  cycleTime = 60. / model.defParam[0]
   totalCycles = 10
   model = cvsim6(cycleTime,totalCycles)
 

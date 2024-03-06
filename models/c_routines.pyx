@@ -47,13 +47,22 @@ cpdef eval_cvsim6_ic(double[:] params):
   cdef double c_r_sys = params[15]
   cdef double c_r_dia = params[16]
 
+  # make up unstressed volume inputs
+  cdef double v_0_lv  = params[17]
+  cdef double v_0_a   = params[18]
+  cdef double v_0_v   = params[19]
+  cdef double v_0_rv  = params[20]
+  cdef double v_0_pa  = params[21]
+  cdef double v_0_pv  = params[22]
+
+
   cdef double t_tot = 60.0/hr
   cdef double t_sys = t_tot*tr_sys
   cdef double t_dia = t_tot-t_sys
 
   # Assign blood volumnes
   cdef double v_tot   = 5000.0
-  cdef double v_0_tot = 15.0+715.0+2500.0+15.0+90.0+490.0
+  cdef double v_0_tot = v_0_lv + v_0_a + v_0_v + v_0_rv + v_0_pa + v_0_pv
 
   # Solve a 8x8 linear system
   ic_mat = np.zeros((8,8))
@@ -331,7 +340,7 @@ cpdef evalDeriv_cvsim6(double t,double[::1] y,double[::1] params,
 
   # COMPUTE VOLUMES
   cdef double v_l  = (p_l - p_th) * c_l + params[i_v_0_lv]
-  cdef double v_a  = p_a * c_a + params[i_v_0_a]
+  cdef double v_a  = (p_a - 1./3*p_th) * c_a + params[i_v_0_a] # consistent with IC (Davis 1991)
   cdef double v_v  = p_v * c_v + params[i_v_0_v]
   cdef double v_r  = (p_r - p_th) * c_r + params[i_v_0_rv]
   cdef double v_pa = (p_pa - p_th) * c_pa + params[i_v_0_pa]
