@@ -295,7 +295,7 @@ class cvsim6(circuitModel):
     return evalDeriv_cvsim6(t,y,params,self.numState,self.numAuxState)
 
   def plot_model(self,t,y,aux,start,stop):
-    show_id = 0
+    show_id = [0,1,2,3,4,5]
     # Plot settings
     fs=10
     plt.rc('font', family='serif')
@@ -304,7 +304,7 @@ class cvsim6(circuitModel):
     plt.rc('text', usetex=True)
 
     ### SYSTEMIC SIDE
-    if(show_id == 0):
+    if(0 in show_id):
 
       # Pressure
       plt.figure(figsize=(3,3))    
@@ -321,7 +321,7 @@ class cvsim6(circuitModel):
       plt.savefig('cvsim_01.pdf')
       plt.close()      
 
-    elif(show_id == 1):
+    if(1 in show_id):
 
       # Volume
       plt.figure(figsize=(3,3))
@@ -338,7 +338,7 @@ class cvsim6(circuitModel):
       plt.savefig('cvsim_02.pdf')
       plt.close()
 
-    elif(show_id == 2):
+    if(2 in show_id):
 
       # Flow
       plt.figure(figsize=(3,3))
@@ -355,7 +355,7 @@ class cvsim6(circuitModel):
       plt.savefig('cvsim_03.pdf')
       plt.close()
 
-    elif(show_id == 3):
+    if(3 in show_id):
 
       ### PULMONARY SIDE
 
@@ -374,7 +374,7 @@ class cvsim6(circuitModel):
       plt.savefig('cvsim_04.pdf')
       plt.close()
 
-    elif(show_id == 4):
+    if(4 in show_id):
 
       # Volume
       plt.figure(figsize=(3,3))
@@ -390,7 +390,7 @@ class cvsim6(circuitModel):
       plt.savefig('cvsim_05.pdf')
       plt.close()
 
-    elif(show_id == 5):
+    if(5 in show_id):
 
       # Flow
       plt.figure(figsize=(3,3))
