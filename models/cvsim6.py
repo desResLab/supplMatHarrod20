@@ -583,7 +583,7 @@ def test_cvsim6():
   Testing functionality for CVSIM6 model
   '''
   # cycleTime: 60(s)/Heart rate
-  cycleTime = 60. / model.defParam[0]
+  cycleTime = 60. / 72.0
   totalCycles = 10
   model = cvsim6(cycleTime,totalCycles,debugMode=True)
 
@@ -683,7 +683,7 @@ def eval_obj(params_red,model,input_map):
 def optimize_cvsim6():
 
   # cycleTime: 60(s)/Heart rate
-  cycleTime = 60. / model.defParam[0]
+  cycleTime = 60. / 72.
   totalCycles = 10
   model = cvsim6(cycleTime,totalCycles,debugMode=False)
 
@@ -737,7 +737,7 @@ def optimize_cvsim6():
 def eval_cvsim6_grad():  
   
   # cycleTime: 60(s)/Heart rate
-  cycleTime = 60. / model.defParam[0]
+  cycleTime = 60. / 72.
   totalCycles = 10
   model = cvsim6(cycleTime,totalCycles)
 
